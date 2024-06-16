@@ -87,14 +87,14 @@ var policyName = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: policyName,
-                      builder =>
+                      policy =>
                       {
-                          builder
-                            .AllowAnyOrigin()
-                            .AllowAnyMethod()
-                            .AllowAnyHeader(); // allowing any header to be sent
+                          policy.WithOrigins("http://localhost:4200");
+                          policy.AllowAnyHeader();
+                          policy.AllowAnyMethod();
+                          policy.AllowAnyOrigin();
+                          policy.SetIsOriginAllowed(x => x == "http://localhost:4200");
                       });
-
 });
 
 // Add services to the container.

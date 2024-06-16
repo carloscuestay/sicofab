@@ -120,7 +120,7 @@ namespace sicf_DataBase.Repositories.Usuario
                     select new ComisariaPerfilDTO
 
                     {
-                        idComisaria = usuper.IdComisaria,
+                        //idComisaria = usuper.IdComisaria,
                         perfil = per.Codigo,
                         nombrePerfil = per.NombrePerfil 
                     }).ToListAsync();

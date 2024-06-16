@@ -11,6 +11,7 @@ using sicfServicesApi.Utility;
 using sicf_Models.Dto.PerfilUsuario;
 using SendGrid;
 using sicf_Models.Dto.Usuario;
+using sicf_BusinessHandlers.BusinessHandlers.Usuario;
 
 namespace sicfServicesApi.Controllers
 {
@@ -20,6 +21,7 @@ namespace sicfServicesApi.Controllers
     {
 
         private ISecurityService securityService;
+        private IUsuarioHandler usuarioHandler;
 
 
         string caster = string.Empty;
@@ -27,9 +29,10 @@ namespace sicfServicesApi.Controllers
 
         //private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public LoginController(ISecurityService securityService)
+        public LoginController(ISecurityService securityService, IUsuarioHandler usuarioHandler)
         {
             this.securityService = securityService;
+            this.usuarioHandler = usuarioHandler;
 
 
         }
@@ -38,8 +41,28 @@ namespace sicfServicesApi.Controllers
 
         public async Task<IActionResult> Login([FromBody] LoginDTO login)
         {
+            //CrearUsuario();
+            CrearUsuarioDTO data = new CrearUsuarioDTO();
+
+            var perfiles = new List<int>();
+            perfiles.Add(8);
+            data.nombres = "admin";
+            data.apellidos = "Perez";
+            data.correoElectronico = "adminsuper@adminsuper.com";
+            data.telefonoFijo = "2353534";
+            data.celular = "3014101887";
+            data.numeroDocumento = "10516747843";
+            data.tipoDocumento = 1;
+            data.perfiles = perfiles;
+            data.Idcomisaria = 1;
+
+
+
+
             try
             {
+                //await this.usuarioHandler.CrearUsuario(data);
+
                 var response = await securityService.EntregarToken(login.email, login.password);
 
                 return CustomResult(Message.Ok, response, HttpStatusCode.OK);
@@ -52,6 +75,7 @@ namespace sicfServicesApi.Controllers
             }
         }
         
+
         [Authorize]
         [HttpPost("Cambioclave")]
 
