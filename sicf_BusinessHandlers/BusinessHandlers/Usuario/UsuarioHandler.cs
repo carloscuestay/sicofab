@@ -48,7 +48,7 @@ namespace sicf_BusinessHandlers.BusinessHandlers.Usuario
 
                 await _unitofWork.UsuarioRepository.AsignarPerfiles(dataUsu.Item1 , data.perfiles, data.Idcomisaria);
 
-                await _unitofWork.UsuarioRepository.AgregarhistorialContrasena(dataUsu.Item1, dataUsu.Item2);
+                //await _unitofWork.UsuarioRepository.AgregarhistorialContrasena(dataUsu.Item1, dataUsu.Item2);
 
                 _IsendgridNotificaciones.EnviarContrasena(data.correoElectronico , dataUsu.Item3);
 

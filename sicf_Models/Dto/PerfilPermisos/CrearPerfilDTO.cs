@@ -14,6 +14,8 @@ namespace sicf_Models.Dto.PerfilPermisos
         public string Codigo { get; set; } = string.Empty;
 
         public List<int> Actividades { get; set; } = new List<int>();
+
+        public bool Estado {  get; set; }   
     }
 
     public class EditarPerfilDTO : CrearPerfilDTO

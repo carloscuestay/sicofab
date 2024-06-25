@@ -115,24 +115,25 @@ namespace sicf_DataBase.Repositories.Usuario
         public async Task<List<ComisariaPerfilDTO>> PerfilesUsuarioComisaria(int idUsuario)
         {
             return await (from usuper in _context.SicofaUsuarioSistemaPerfil
-                    join per in _context.SicofaPerfil on usuper.IdPerfil equals per.IdPerfil
-                    where usuper.IdUsuarioSistema == idUsuario
-                    select new ComisariaPerfilDTO
-
-                    {
-                        //idComisaria = usuper.IdComisaria,
-                        perfil = per.Codigo,
-                        nombrePerfil = per.NombrePerfil 
-                    }).ToListAsync();
+                          join per in _context.SicofaPerfil on usuper.IdPerfil equals per.IdPerfil
+                          join usuario_comisaria in _context.SicofaUsuarioComisaria on usuper.IdUsuarioSistema equals usuario_comisaria.IdUsuario
+                          join comisaria in _context.SicofaComisaria on usuario_comisaria.IdComisaria equals comisaria.IdComisaria
+                          where usuper.IdUsuarioSistema == idUsuario
+                          select new ComisariaPerfilDTO
+                          {
+                              idComisaria = comisaria.IdComisaria,
+                              perfil = per.Codigo,
+                              nombrePerfil = per.NombrePerfil
+                          }).ToListAsync();
 
         }
 
         public async Task<Tuple<int, int,bool?>> InformacionUsuario(string email)
         {
-           return await (from usuario in _context.SicofaUsuarioSistema
-                  join comisaria in _context.SicofaUsuarioComisaria on usuario.IdUsuarioSistema equals comisaria.IdUsuario
-                  where usuario.CorreoElectronico == email
-                  select Tuple.Create(usuario.IdUsuarioSistema, comisaria.IdComisaria,usuario.cambioPass)).FirstOrDefaultAsync()!;       
+            return await (from usuario in _context.SicofaUsuarioSistema
+                          join comisaria in _context.SicofaUsuarioComisaria on usuario.IdUsuarioSistema equals comisaria.IdUsuario
+                          where usuario.CorreoElectronico == email
+                          select Tuple.Create(usuario.IdUsuarioSistema, comisaria.IdComisaria, usuario.cambioPass)).FirstOrDefaultAsync()!;
         }
 
 

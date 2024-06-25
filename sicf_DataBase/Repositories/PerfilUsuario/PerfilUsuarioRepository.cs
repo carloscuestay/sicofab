@@ -24,7 +24,7 @@ namespace sicf_DataBase.Repositories.PerfilUsuario
         {
             try
             {
-                return await context.SicofaPerfil.Where( se => se.Codigo != PerfilesConstantes.CodigoAdministrador).Select(s => new PerfilDTO { idPerfil = s.IdPerfil, nombrePerfil = s.NombrePerfil }).ToListAsync();
+                return await context.SicofaPerfil.Where( se => se.Codigo != PerfilesConstantes.CodigoAdministrador).Select(s => new PerfilDTO { idPerfil = s.IdPerfil, nombrePerfil = s.NombrePerfil,Codigo=s.Codigo,Estado=(bool)s.Estado }).ToListAsync();
             }
             catch (Exception ex)
             {

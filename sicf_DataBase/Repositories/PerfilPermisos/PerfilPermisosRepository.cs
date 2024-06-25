@@ -47,6 +47,7 @@ namespace sicf_DataBase.Repositories.PerfilPermisos
 
                 perfil.NombrePerfil = data.nombrePerfil;
                 perfil.Codigo = data.Codigo;
+                perfil.Estado = data.Estado;
 
                await  context.SaveChangesAsync();
 
@@ -67,7 +68,7 @@ namespace sicf_DataBase.Repositories.PerfilPermisos
             try
             {
                 var perfilSalida = await context.SicofaPerfil.Where(se => se.IdPerfil == id)
-                    .Select(sel => new PerfilEdicionDTO { IdPerfil = sel.IdPerfil, nombrePerfil = sel.NombrePerfil, codigo = sel.Codigo }).FirstAsync();
+                    .Select(sel => new PerfilEdicionDTO { IdPerfil = sel.IdPerfil, nombrePerfil = sel.NombrePerfil, codigo = sel.Codigo,Estado =(bool)sel.Estado }).FirstAsync();
 
                 return perfilSalida;
             }
@@ -84,22 +85,23 @@ namespace sicf_DataBase.Repositories.PerfilPermisos
             {
                 var perfil = context.SicofaPerfil.Include(se => se.SicofaPerfilActividad).Where(s => s.IdPerfil == idPerfil).First();
 
-                var dom = await (from perfilActividad in context.SicofaPerfilActividad
+                var salida = await (from perfilActividad in context.SicofaPerfilActividad
                                  join actividad in context.SicofaActividad on perfilActividad.IdActividad equals actividad.IdActividad
                                  where perfilActividad.IdPerfil == idPerfil
                                  select new PerfilActividadEdicionDTO
                                  {
                                      nombreActividad = actividad.NombreActividad,
                                      IdActividad = actividad.IdActividad,
-                                     activo = true
+                                     activo = (bool)actividad.Estado
                                  }).ToListAsync();
 
-                var cheto = dom.Select(seu => seu.IdActividad).ToArray();
+  /*              var cheto = dom.Select(seu => seu.IdActividad).ToArray();
                 var active = (from actividad in context.SicofaActividad
                               where !cheto.Contains(actividad.IdActividad)
                               select new PerfilActividadEdicionDTO { nombreActividad = actividad.NombreActividad, IdActividad = actividad.IdActividad, activo = false }).ToList();
 
                 var salida = dom.Concat(active);
+  */
 
                 return salida;
             }
@@ -136,6 +138,7 @@ namespace sicf_DataBase.Repositories.PerfilPermisos
                 SicofaPerfil perfil = new SicofaPerfil();
                 perfil.NombrePerfil = data.nombrePerfil;
                 perfil.Codigo = data.Codigo;
+                perfil.Estado = true;
 
                 context.SicofaPerfil.Add(perfil);
 

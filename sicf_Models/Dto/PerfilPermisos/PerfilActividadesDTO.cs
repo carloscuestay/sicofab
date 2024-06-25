@@ -43,6 +43,7 @@ namespace sicf_Models.Dto.PerfilPermisos
         public string nombrePerfil {get ; set; } = string.Empty;
 
         public string codigo { get; set; } = string.Empty;
+        public bool Estado { get; set; } = false;   
 
         public IEnumerable<PerfilActividadEdicionDTO> Actividades { get; set; } = new List<PerfilActividadEdicionDTO>();
     

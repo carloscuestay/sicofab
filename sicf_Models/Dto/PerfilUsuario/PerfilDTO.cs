@@ -13,6 +13,8 @@ namespace sicf_Models.Dto.PerfilUsuario
         public int idPerfil { get; set; }
 
         public string nombrePerfil { get; set; }
+        public string Codigo { get; set; }
+        public bool Estado { get; set; }
     }
 
 }

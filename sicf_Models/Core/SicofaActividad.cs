@@ -15,7 +15,7 @@ namespace sicf_Models.Core
         public string? Etiqueta { get; set; }
         public string? NombreActividad { get; set; }
         public string? Componente { get; set; }
-        public string? Estado { get; set; }
+        public bool? Estado { get; set; }
         public DateTime? FechaCreacion { get; set; }
         public string? Documento { get; set; }
         public string? ComponenteRetorno { get; set; }

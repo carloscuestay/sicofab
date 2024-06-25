@@ -14,7 +14,7 @@ namespace sicf_Models.Core
 
         public int IdPerfil { get; set; }
         public string? NombrePerfil { get; set; }
-        public string? Estado { get; set; }
+        public bool? Estado { get; set; }
         public string? Codigo { get; set; }
 
         public virtual ICollection<SicofaPerfilActividad> SicofaPerfilActividad { get; set; }
