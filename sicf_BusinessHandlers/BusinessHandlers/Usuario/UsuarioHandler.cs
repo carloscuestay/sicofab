@@ -41,6 +41,7 @@ namespace sicf_BusinessHandlers.BusinessHandlers.Usuario
         public async Task CrearUsuario(CrearUsuarioDTO data)
         {
             try
+
             {
                 var dataUsu = await _unitofWork.UsuarioRepository.CrearUsuario(data);
 

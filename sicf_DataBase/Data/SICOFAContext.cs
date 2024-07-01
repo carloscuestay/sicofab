@@ -2871,12 +2871,12 @@ namespace sicf_DataBase.Data
                     .IsRequired()
                     .HasDefaultValueSql("((1))");
 
-                entity.Property(e => e.IdComisaria).HasColumnName("id_comisaria");
+                //entity.Property(e => e.IdComisaria).HasColumnName("id_comisaria");
 
-                entity.HasOne(d => d.IdComisariaNavigation)
-                    .WithMany(p => p.SicofaUsuarioSistemaPerfil)
-                    .HasForeignKey(d => d.IdComisaria)
-                    .HasConstraintName("FK_UsuarioSistema_Perfil_Comisaria");
+                //entity.HasOne(d => d.IdComisariaNavigation)
+                //    .WithMany(p => p.SicofaUsuarioSistemaPerfil)
+                //    .HasForeignKey(d => d.IdComisaria)
+                //    .HasConstraintName("FK_UsuarioSistema_Perfil_Comisaria");
 
                 entity.HasOne(d => d.IdUsuarioSistemaNavigation)
                     .WithMany(p => p.SicofaUsuarioSistemaPerfil)

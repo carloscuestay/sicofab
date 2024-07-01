@@ -263,7 +263,7 @@ namespace sicf_DataBase.Repositories.Usuario
                     SicofaUsuarioSistemaPerfil inner = new SicofaUsuarioSistemaPerfil();
                     inner.IdUsuarioSistema = idUsuario;
                     inner.IdPerfil = perfil;
-                    inner.IdComisaria = idiComisaria;
+                    //inner.IdComisaria = idiComisaria;
                     asignacion.Add(inner);
                 }
                 await _context.SicofaUsuarioSistemaPerfil.AddRangeAsync(asignacion);
@@ -407,7 +407,7 @@ namespace sicf_DataBase.Repositories.Usuario
             {
                 return (from usuSisPer in _context.SicofaUsuarioSistemaPerfil
                         join perfil in _context.SicofaPerfil on usuSisPer.IdPerfil equals perfil.IdPerfil
-                        where usuSisPer.IdUsuarioSistema == IdUsuarioSistema & usuSisPer.IdComisaria == idComisaria
+                        where usuSisPer.IdUsuarioSistema == IdUsuarioSistema 
                         select new PerfilDTO
                         {
                             idPerfil = perfil.IdPerfil,
@@ -459,7 +459,7 @@ namespace sicf_DataBase.Repositories.Usuario
 
                     inner.IdUsuarioSistema = idUsuario;
                     inner.IdPerfil = perfil;
-                    inner.IdComisaria = idComisaria;
+                    ///inner.IdComisaria = idComisaria;
 
                     asignacion.Add(inner);
                 }

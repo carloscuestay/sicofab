@@ -31,7 +31,7 @@ namespace sicf_Models.Core
         public virtual ICollection<SicofaRemisionSolicitudServicio> SicofaRemisionSolicitudServicioIdComisariaDestinoNavigation { get; set; }
         public virtual ICollection<SicofaRemisionSolicitudServicio> SicofaRemisionSolicitudServicioIdComisariaOrigenNavigation { get; set; }
         public virtual ICollection<SicofaSolicitudServicio> SicofaSolicitudServicio { get; set; }
-        public virtual ICollection<SicofaUsuarioSistemaPerfil> SicofaUsuarioSistemaPerfil { get; set; }
+        //public virtual ICollection<SicofaUsuarioSistemaPerfil> SicofaUsuarioSistemaPerfil { get; set; }
         //public virtual ICollection<SicofaUsuarioSistema> SicofaUsuarioSistema { get; set; }
     }
 }
