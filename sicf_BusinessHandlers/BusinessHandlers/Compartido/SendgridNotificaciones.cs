@@ -1,6 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Azure.Core;
+using Microsoft.Extensions.Configuration;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
+using MimeKit.Text;
+
 
 namespace sicf_BusinessHandlers.BusinessHandlers.Compartido
 {
@@ -43,58 +50,93 @@ namespace sicf_BusinessHandlers.BusinessHandlers.Compartido
 
         private async Task sendgridSendMail()
         {
-            var apiKey = Configuration["Sendgrid:apiKey"];
-            var client = new SendGridClient(apiKey);
+            try
+            {
+                var apiKey = Configuration["Sendgrid:apiKey"];
+                var client = new SendGridClient(apiKey);
 
-            var from = new EmailAddress(Configuration["Sendgrid:senderMail"], "Remitente Comisaria");
-            var subject = "Sending with SendGrid is Fun";
-            var to = new EmailAddress("miguelegion@gmail.com", "Usuario Comisaria");
-            var plainTextContent = "and easy to do anywhere, even with C#";
-            var htmlContent = "<strong>and easy to do anywhere, even with C#</strong>";
-            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+                var from = new EmailAddress(Configuration["Sendgrid:senderMail"], "Remitente Comisaria");
+                var subject = "Sending with SendGrid is Fun";
+                var to = new EmailAddress("isapzmz@gmail.com", "Usuario Comisaria");
+                var plainTextContent = "and easy to do anywhere, even with C#";
+                var htmlContent = "<strong>and easy to do anywhere, even with C#</strong>";
+                var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
 
-            var response = await client.SendEmailAsync(msg);
+                var response = await client.SendEmailAsync(msg);
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+           
         }
 
-        private async Task RestaurarContrasena(string email, string temporalPass)
+        private async Task RestaurarContrasena(string correo, string temporalPass)
         {
-            var apiKey = Configuration["Sendgrid:apiKey"];
-            var client = new SendGridClient(apiKey);
+            var email = new MimeMessage();
+            try
+            {
+                email.From.Add(MailboxAddress.Parse(Configuration.GetSection("Email:UserName").Value));
+                email.To.Add(MailboxAddress.Parse(correo));
+                email.Body = new TextPart(TextFormat.Html) { Text = "tu contraseña Sicofa es: " + temporalPass };
 
-            var from = new EmailAddress(Configuration["Sendgrid:senderMail"], "Remitente Comisaria");
-            var subject = "Recuperación de contraseña Sistema SICOFA";
-            var to = new EmailAddress(email, "Recuperación de contraseña Sistema SICOFA");
-            var plainTextContent = $"Buen día" +
-                $"Le ha sido asignada la siguiente contraseña provisional {temporalPass}";
-            
-            var htmlContent = $"Buen día" +
-                $"<br> Le ha sido asignada la siguiente contraseña provisional <strong>{temporalPass}</strong>";
+                var smtp = new SmtpClient();
 
-            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+                var host = Configuration.GetSection("Email:Host").Value;
+                var port = Convert.ToInt32(Configuration.GetSection("Email:Port").Value);
+                var user = Configuration.GetSection("Email:UserName").Value;
+                var pass = Configuration.GetSection("Email:PassWord").Value;
 
-            var response = await client.SendEmailAsync(msg);
+                smtp.Connect(host, port, SecureSocketOptions.StartTls);
+
+                smtp.Authenticate(user, pass);
+                smtp.Send(email);
+                smtp.Disconnect(true);
+
+
+
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
         }
 
 
-        private async Task EntregarContrasena(string email, string pass)
+        private async Task EntregarContrasena(string correo, string passs)
         {
-            var apiKey = Configuration["Sendgrid:apiKey"];
-            var client = new SendGridClient(apiKey);
+            var email = new MimeMessage();
+            try
+            {
+                email.From.Add(MailboxAddress.Parse(Configuration.GetSection("Email:UserName").Value));
+                email.To.Add(MailboxAddress.Parse(correo));
+                email.Body = new TextPart(TextFormat.Html) {Text = "tu contraseña Sicofa es: " + passs + "por favor cambiarla "};
 
-            var from = new EmailAddress(Configuration["Sendgrid:senderMail"], "Remitente Comisaria");
-            var subject = "Datos de Ingreso al Sistema SICOFA";
-            var to = new EmailAddress(email, "Datos de Ingreso al Sistema SICOFA");
-            var plainTextContent = $"Bienvenido al Sistema SICOFA" +
-                $"Su usuario es {email}" +
-                $"Su contraseña es {pass}" +
-                $"Saludos ";
-            var htmlContent = $"Bienvenido al Sistema SICOFA" +
-                $"<br>Su usuario es {email}" +
-                $"<br>Su contraseña es {pass}" +
-                $"<br>Saludos ";
-            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+                var smtp = new SmtpClient();
 
-            var response = await client.SendEmailAsync(msg);
+                var host = Configuration.GetSection("Email:Host").Value;
+                var port = Convert.ToInt32(Configuration.GetSection("Email:Port").Value);
+                var user = Configuration.GetSection("Email:UserName").Value;
+                var pass = Configuration.GetSection("Email:PassWord").Value;
+
+                smtp.Connect(host, port, SecureSocketOptions.StartTls);
+
+                smtp.Authenticate(user, pass);
+                smtp.Send(email);
+                smtp.Disconnect(true);
+
+
+               
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+
+          
         }
     }
 }
