@@ -112,7 +112,7 @@ namespace sicf_BusinessHandlers.BusinessHandlers.Compartido
             {
                 email.From.Add(MailboxAddress.Parse(Configuration.GetSection("Email:UserName").Value));
                 email.To.Add(MailboxAddress.Parse(correo));
-                email.Body = new TextPart(TextFormat.Html) {Text = "tu contraseña Sicofa es: " + passs + "por favor cambiarla "};
+                email.Body = new TextPart(TextFormat.Html) {Text = "tu contraseña Sicofa es: " + passs + " por favor cambiarla "};
 
                 var smtp = new SmtpClient();
 
