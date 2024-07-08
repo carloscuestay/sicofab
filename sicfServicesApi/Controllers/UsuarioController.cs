@@ -33,7 +33,7 @@ namespace sicfServicesApi.Controllers
             {
                 await usuarioHandler.CrearUsuario(data);
 
-                return CustomResult(Message.Ok, "Usuaria Creado", HttpStatusCode.OK);
+                return CustomResult(Message.Ok, "Usuario Creado", HttpStatusCode.OK);
             }
             catch (Exception ex) {
 
