@@ -8,6 +8,11 @@ using sicf_Models.Dto.Usuario;
 using sicfServicesApi.Utility;
 using static sicf_Models.Constants.Constants;
 using System.Net;
+using sicf_Models.Dto.Solicitudes;
+using sicf_Models.Utility;
+using sicfExceptions.Exceptions;
+using FluentValidation;
+using sicf_BusinessHandlers.BusinessHandlers.Solicitudes;
 
 namespace sicfServicesApi.Controllers
 {
@@ -19,13 +24,17 @@ namespace sicfServicesApi.Controllers
     {
 
         private IUsuarioHandler usuarioHandler;
+        private readonly ISolicitudesHandler _solicitudesHandler;
+        private readonly IValidator<RequestDatosInvolucrado> _validator;
 
-        public UsuarioController(IUsuarioHandler usuarioHandler)
+        public UsuarioController(IUsuarioHandler usuarioHandler, ISolicitudesHandler solicitudesHander, IValidator<RequestDatosInvolucrado> validator)
         {
             this.usuarioHandler = usuarioHandler;
+            _solicitudesHandler = solicitudesHander;
+            _validator = validator;
         }
 
-       
+
         [HttpPost("CrearUsuario")]
         public async Task<IActionResult> CrearUsuario(CrearUsuarioDTO data)
         {
@@ -35,16 +44,17 @@ namespace sicfServicesApi.Controllers
 
                 return CustomResult(Message.Ok, "Usuario Creado", HttpStatusCode.OK);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
 
 
                 return CustomResult(Message.ErrorInterno, ex.Message, HttpStatusCode.BadRequest);
 
             }
-        
+
         }
 
-       
+
         [HttpPost("ActualizarUsuarios")]
         public async Task<IActionResult> ActualizarUsuarios(UsuarioDTO data)
         {
@@ -61,7 +71,7 @@ namespace sicfServicesApi.Controllers
 
         }
 
-  
+
         [HttpGet("GetUsuario/{userID}")]
         public async Task<IActionResult> getUsuario(long userID)
         {
@@ -100,24 +110,53 @@ namespace sicfServicesApi.Controllers
             }
         }
 
-            [HttpGet("ListarUsuarios/{idComisaria}")]
-            public async Task<IActionResult> ListarUsuariosComisaria(int idComisaria)
+        [HttpGet("ListarUsuarios/{idComisaria}")]
+        public async Task<IActionResult> ListarUsuariosComisaria(int idComisaria)
+        {
+            try
             {
-                try
-                {
-                    var ListaUsuarios = await usuarioHandler.ListarUsuarios(idComisaria);
+                var ListaUsuarios = await usuarioHandler.ListarUsuarios(idComisaria);
 
-                    return CustomResult(Message.Ok, ListaUsuarios, HttpStatusCode.OK);
-                }
-                catch (Exception ex)
-                {
+                return CustomResult(Message.Ok, ListaUsuarios, HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
 
 
-                    return CustomResult(Message.ErrorInterno, ex.Message, HttpStatusCode.BadRequest);
-
-                }
-
+                return CustomResult(Message.ErrorInterno, ex.Message, HttpStatusCode.BadRequest);
 
             }
+
+
         }
+
+
+        [HttpPost]
+        [Route("consultarUsuario")]
+        //[Authorize]
+        public IActionResult ConsultarUsuario(RequestCiudadano requestCiudadano)
+        {
+            try
+            {
+                ResponseListaPaginada response = new ResponseListaPaginada();
+                response = usuarioHandler.ValidarUsuario(requestCiudadano);
+
+                if (response.TotalRegistros > 0)
+                    return CustomResult(Message.ErrorRequest, response, HttpStatusCode.BadRequest);
+
+                response = usuarioHandler.GetUsuario(requestCiudadano);
+
+                return CustomResult(Message.Ok, response, HttpStatusCode.OK);
+
+            }
+            catch (ControledException ex)
+            {
+                return CustomResult(Message.ErrorInterno, Message.ErrorGenerico, HttpStatusCode.InternalServerError);
+            }
+            catch (Exception ex)
+            {
+                return CustomResult(Message.ErrorInterno, Message.ErrorGenerico, HttpStatusCode.InternalServerError);
+            }
+        }
+    }
 }
