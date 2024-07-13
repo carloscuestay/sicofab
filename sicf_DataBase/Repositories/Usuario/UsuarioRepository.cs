@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using sicf_DataBase.BDConnection;
 using sicf_DataBase.Data;
 using sicf_Models.Core;
 using sicf_Models.Dto.EvaluacionPsicologica;
@@ -8,9 +9,12 @@ using sicf_Models.Dto.PerfilUsuario;
 using sicf_Models.Dto.Solicitudes;
 using sicf_Models.Dto.Token;
 using sicf_Models.Dto.Usuario;
+using sicf_Models.Utility;
+using sicfExceptions.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -19,10 +23,10 @@ using static sicf_Models.Constants.Constants;
 
 namespace sicf_DataBase.Repositories.Usuario
 {
-    public class UsuarioRepository:IUsuarioRepository
+    public class UsuarioRepository : IUsuarioRepository
     {
         private readonly SICOFAContext _context;
-       
+
         public UsuarioRepository(SICOFAContext context)
         {
 
@@ -53,7 +57,8 @@ namespace sicf_DataBase.Repositories.Usuario
             }
         }
 
-        public bool IsUserPerfil(long userID, string codPefil) {
+        public bool IsUserPerfil(long userID, string codPefil)
+        {
             try
             {
                 var respuesta = (from user in _context.SicofaUsuarioSistema
@@ -66,31 +71,32 @@ namespace sicf_DataBase.Repositories.Usuario
                 if (respuesta.Count > 0)
                     return true;
 
-               return false; 
+                return false;
             }
             catch (Exception ex)
             {
                 throw ex;
             }
-        
+
         }
 
-        public async Task<bool> VerificarCredenciales(string email, string password) 
+        public async Task<bool> VerificarCredenciales(string email, string password)
         {
             try
             {
                 string pass = CreateMD5(password);
-                return  await _context.SicofaUsuarioSistema.AnyAsync(s => s.CorreoElectronico.ToLower() == email & s.EncriptPassw == pass & s.Activo == true);
+                return await _context.SicofaUsuarioSistema.AnyAsync(s => s.CorreoElectronico.ToLower() == email & s.EncriptPassw == pass & s.Activo == true);
 
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
 
 
                 throw new Exception(ex.Message);
-            
-            
+
+
             }
-        
+
         }
 
         public async Task<List<string>> PerfilesUsuario(string email)
@@ -98,18 +104,19 @@ namespace sicf_DataBase.Repositories.Usuario
             try
             {
                 var salida = await (from usu in _context.SicofaUsuarioSistema
-                              join usuper in _context.SicofaUsuarioSistemaPerfil on usu.IdUsuarioSistema equals usuper.IdUsuarioSistema
-                              join per in _context.SicofaPerfil on usuper.IdPerfil equals per.IdPerfil
-                              where usu.CorreoElectronico == email
-                              select per.Codigo).ToListAsync();
+                                    join usuper in _context.SicofaUsuarioSistemaPerfil on usu.IdUsuarioSistema equals usuper.IdUsuarioSistema
+                                    join per in _context.SicofaPerfil on usuper.IdPerfil equals per.IdPerfil
+                                    where usu.CorreoElectronico == email
+                                    select per.Codigo).ToListAsync();
 
                 return salida;
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
 
                 throw new Exception(ex.Message);
             }
-        
+
         }
 
         public async Task<List<ComisariaPerfilDTO>> PerfilesUsuarioComisaria(int idUsuario)
@@ -128,7 +135,7 @@ namespace sicf_DataBase.Repositories.Usuario
 
         }
 
-        public async Task<Tuple<int, int,bool?>> InformacionUsuario(string email)
+        public async Task<Tuple<int, int, bool?>> InformacionUsuario(string email)
         {
             return await (from usuario in _context.SicofaUsuarioSistema
                           join comisaria in _context.SicofaUsuarioComisaria on usuario.IdUsuarioSistema equals comisaria.IdUsuario
@@ -137,14 +144,16 @@ namespace sicf_DataBase.Repositories.Usuario
         }
 
 
-        public async Task<Tuple<int,string,string>> CrearUsuario(CrearUsuarioDTO data)
+        public async Task<Tuple<int, string, string>> CrearUsuario(CrearUsuarioDTO data)
         {
-            try {
+            try
+            {
 
 
-              var previo  =  await _context.SicofaUsuarioSistema.Where(s => s.CorreoElectronico == data.correoElectronico).FirstOrDefaultAsync();
+                var previo = await _context.SicofaUsuarioSistema.Where(s => s.CorreoElectronico == data.correoElectronico).FirstOrDefaultAsync();
 
-                if (previo != null) {
+                if (previo != null)
+                {
 
                     throw new Exception(UsuarioMensaje.usuarioRegistrado);
                 }
@@ -163,7 +172,7 @@ namespace sicf_DataBase.Repositories.Usuario
 
                 string claveAsignada = GetUniqueKey();
                 usuario.EncriptPassw = CreateMD5(claveAsignada);
-              
+
 
                 bool fijo = Int64.TryParse(data.telefonoFijo, out long number);
                 bool celular = Int64.TryParse(data.celular, out long number2);
@@ -176,11 +185,11 @@ namespace sicf_DataBase.Repositories.Usuario
 
                 await _context.SaveChangesAsync();
 
-                var salida = Tuple.Create(usuario.IdUsuarioSistema , usuario.EncriptPassw ,claveAsignada);
+                var salida = Tuple.Create(usuario.IdUsuarioSistema, usuario.EncriptPassw, claveAsignada);
                 return salida;
-                
+
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
 
                 throw new Exception(ex.Message);
@@ -193,8 +202,8 @@ namespace sicf_DataBase.Repositories.Usuario
             {
 
                 var validarEmailUsuaruio = await (from usuE in _context.SicofaUsuarioSistema
-                                                  where usuE.CorreoElectronico == data.correoElectronico 
-                                                  & usuE.IdUsuarioSistema != data.IdUsuarioSistema                                                
+                                                  where usuE.CorreoElectronico == data.correoElectronico
+                                                  & usuE.IdUsuarioSistema != data.IdUsuarioSistema
                                                   select usuE.CorreoElectronico).ToListAsync();
 
                 var usuario = await (from usu in _context.SicofaUsuarioSistema
@@ -227,7 +236,8 @@ namespace sicf_DataBase.Repositories.Usuario
                     {
                         throw new Exception("Usuario no pertenece a esta comisaria!");
                     }
-                }else
+                }
+                else
                 {
                     throw new Exception("El correo electonico ya existe");
                 }
@@ -256,7 +266,7 @@ namespace sicf_DataBase.Repositories.Usuario
                     await _context.SaveChangesAsync();
                 }
 
-                List <SicofaUsuarioSistemaPerfil> asignacion = new List<SicofaUsuarioSistemaPerfil>();
+                List<SicofaUsuarioSistemaPerfil> asignacion = new List<SicofaUsuarioSistemaPerfil>();
 
                 foreach (int perfil in perfiles)
                 {
@@ -302,7 +312,7 @@ namespace sicf_DataBase.Repositories.Usuario
 
 
 
-                usuario.perfiles = listaPerfiles(Convert.ToInt32(userID));                
+                usuario.perfiles = listaPerfiles(Convert.ToInt32(userID));
 
                 return usuario;
             }
@@ -312,7 +322,7 @@ namespace sicf_DataBase.Repositories.Usuario
             }
         }
 
-        public async Task<UsuarioDTO> ConsultarUsuarioPorCorreo(string email) 
+        public async Task<UsuarioDTO> ConsultarUsuarioPorCorreo(string email)
         {
 
             try
@@ -359,7 +369,7 @@ namespace sicf_DataBase.Repositories.Usuario
 
                 var resul = await _context.UsuarioDTOs.FromSqlInterpolated(strQuery).ToListAsync();
 
-                var agrupado=resul.Select(s => new UsuarioPerfilesDTO
+                var agrupado = resul.Select(s => new UsuarioPerfilesDTO
                 {
                     IdUsuarioSistema = s.IdUsuarioSistema,
                     tipoDocumento = s.tipoDocumento,
@@ -393,7 +403,7 @@ namespace sicf_DataBase.Repositories.Usuario
         {
             try
             {
-                return  _context.SicofaUsuarioSistemaPerfil.Where(x => x.IdUsuarioSistema == IdUsuarioSistema).Select(y => y.IdPerfil).ToList();
+                return _context.SicofaUsuarioSistemaPerfil.Where(x => x.IdUsuarioSistema == IdUsuarioSistema).Select(y => y.IdPerfil).ToList();
             }
             catch (Exception ex)
             {
@@ -407,13 +417,13 @@ namespace sicf_DataBase.Repositories.Usuario
             {
                 return (from usuSisPer in _context.SicofaUsuarioSistemaPerfil
                         join perfil in _context.SicofaPerfil on usuSisPer.IdPerfil equals perfil.IdPerfil
-                        where usuSisPer.IdUsuarioSistema == IdUsuarioSistema 
+                        where usuSisPer.IdUsuarioSistema == IdUsuarioSistema
                         select new PerfilDTO
                         {
                             idPerfil = perfil.IdPerfil,
                             nombrePerfil = perfil.NombrePerfil
                         }
-                        ).ToList();                    
+                        ).ToList();
             }
             catch (Exception ex)
             {
@@ -422,7 +432,7 @@ namespace sicf_DataBase.Repositories.Usuario
         }
 
 
-        public async Task UsuarioAsignacionComisaria(int idUsuario, int Comisiaria) 
+        public async Task UsuarioAsignacionComisaria(int idUsuario, int Comisiaria)
         {
             try
             {
@@ -436,24 +446,27 @@ namespace sicf_DataBase.Repositories.Usuario
                 await _context.SaveChangesAsync();
 
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
 
                 throw new Exception(ex.Message);
             }
-        
+
         }
 
         public async Task AsignarPerfiles(int idUsuario, List<int> perfiles, long idComisaria)
         {
             try
             {
-                if (perfiles.Count <= 0) {
+                if (perfiles.Count <= 0)
+                {
 
                     throw new Exception(UsuarioMensaje.noPerfil);
                 }
                 List<SicofaUsuarioSistemaPerfil> asignacion = new List<SicofaUsuarioSistemaPerfil>();
 
-                foreach (int perfil in perfiles) {
+                foreach (int perfil in perfiles)
+                {
 
                     SicofaUsuarioSistemaPerfil inner = new SicofaUsuarioSistemaPerfil();
 
@@ -466,15 +479,16 @@ namespace sicf_DataBase.Repositories.Usuario
 
                 await _context.SicofaUsuarioSistemaPerfil.AddRangeAsync(asignacion);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
 
                 throw new Exception(ex.Message);
-            
+
             }
-        
+
         }
 
-        public async Task AgregarhistorialContrasena(int usuario , string pass)
+        public async Task AgregarhistorialContrasena(int usuario, string pass)
         {
             try
             {
@@ -493,7 +507,8 @@ namespace sicf_DataBase.Repositories.Usuario
                     await _context.SaveChangesAsync();
 
                 }
-                else {
+                else
+                {
 
                     previa.FechaFin = DateTime.Now;
                     SicofaHistorialContrasena contra = new SicofaHistorialContrasena();
@@ -507,7 +522,8 @@ namespace sicf_DataBase.Repositories.Usuario
 
                 }
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
 
                 throw new Exception(ex.Message);
             }
@@ -530,11 +546,12 @@ namespace sicf_DataBase.Repositories.Usuario
                 return response;
 
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
 
                 throw new Exception(ex.Message);
             }
-        
+
         }
 
         public async Task<string> AsignacionClaveTemporal(string email)
@@ -542,9 +559,10 @@ namespace sicf_DataBase.Repositories.Usuario
             try
             {
 
-                var usuario =await _context.SicofaUsuarioSistema.Where(s => s.CorreoElectronico == email).FirstOrDefaultAsync();
+                var usuario = await _context.SicofaUsuarioSistema.Where(s => s.CorreoElectronico == email).FirstOrDefaultAsync();
 
-                if (usuario == null) {
+                if (usuario == null)
+                {
                     throw new Exception(LoginMensaje.noUsuario);
                 }
 
@@ -552,27 +570,28 @@ namespace sicf_DataBase.Repositories.Usuario
 
                 string Temporalpass = GetUniqueKey();
 
-                var passhash=CreateMD5(Temporalpass);
+                var passhash = CreateMD5(Temporalpass);
 
                 usuario.EncriptPassw = passhash;
 
                 usuario.cambioPass = true;
-             
+
 
                 await _context.SaveChangesAsync();
 
                 return Temporalpass;
 
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
 
                 throw new Exception(ex.Message);
             }
-        
+
         }
 
         // valida si tiene la bandera activa para cambio de clave
-        public async Task<int> ValidarDisponiblidadCambio(string email) 
+        public async Task<int> ValidarDisponiblidadCambio(string email)
         {
             try
             {
@@ -584,7 +603,8 @@ namespace sicf_DataBase.Repositories.Usuario
                     return solicitud.IdUsuarioSistema;
 
                 }
-                else {
+                else
+                {
 
                     throw new Exception(UsuarioMensaje.noCambioclave);
 
@@ -593,9 +613,9 @@ namespace sicf_DataBase.Repositories.Usuario
             catch (Exception ex)
             {
 
-                throw new Exception(ex.Message); 
+                throw new Exception(ex.Message);
 
-            } 
+            }
         }
 
         public async Task CambioClave(int id_usuario, string nuevopass)
@@ -609,7 +629,8 @@ namespace sicf_DataBase.Repositories.Usuario
 
                 await _context.SaveChangesAsync();
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
 
 
                 throw new Exception(ex.Message);
@@ -632,7 +653,7 @@ namespace sicf_DataBase.Repositories.Usuario
 
                 var historialBorrado = await _context.SicofaHistorialContrasena.Where(s => s.IdUsuario == id_usuario_sistema).ToListAsync();
 
-                    SicofaHistorialContrasena inner = new SicofaHistorialContrasena();
+                SicofaHistorialContrasena inner = new SicofaHistorialContrasena();
 
                 if (historialBorrado.Count() == 5)
                 {
@@ -643,7 +664,7 @@ namespace sicf_DataBase.Repositories.Usuario
                 inner.IdUsuario = id_usuario_sistema;
                 inner.FechaInicio = DateTime.Now;
 
-               _context.SicofaHistorialContrasena.Add(inner);
+                _context.SicofaHistorialContrasena.Add(inner);
                 await _context.SaveChangesAsync();
 
 
@@ -657,14 +678,14 @@ namespace sicf_DataBase.Repositories.Usuario
             }
         }
 
-      
+
 
         public async Task<bool> verificarDuplicidadClave(int id_usuario_sistema, string pass)
         {
             try
             {
-               var com = await _context.SicofaHistorialContrasena.Where(s => s.IdUsuario == id_usuario_sistema).ToListAsync();
-                var dom =com.Any( s => s.EncriptPass == CreateMD5(pass));
+                var com = await _context.SicofaHistorialContrasena.Where(s => s.IdUsuario == id_usuario_sistema).ToListAsync();
+                var dom = com.Any(s => s.EncriptPass == CreateMD5(pass));
 
                 return dom;
             }
@@ -676,15 +697,15 @@ namespace sicf_DataBase.Repositories.Usuario
             }
         }
 
-        private  string CreateMD5(string input)
+        private string CreateMD5(string input)
         {
-           // stable dev
+            // stable dev
             using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create())
             {
                 byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
                 byte[] hashBytes = md5.ComputeHash(inputBytes);
 
-                return Convert.ToHexString(hashBytes); 
+                return Convert.ToHexString(hashBytes);
             }
         }
 
@@ -707,7 +728,35 @@ namespace sicf_DataBase.Repositories.Usuario
             { result.Append(chars[b % (chars.Length - 1)]); }
             return result.ToString();
         }
+        public ResponseListaPaginada ObtenerUsuario(RequestCiudadano requestCiudadano)
+        {
+
+            try
+            {
+
+                var salida = !requestCiudadano.numero_documento.Any() 
+                    ? _context.SicofaUsuarioSistema
+                        .Where(u => u.Nombres == requestCiudadano.nombre_ciudadano && 
+                            u.Apellidos == requestCiudadano.apellido_ciudadano)
+                        .ToList() 
+                    : _context.SicofaUsuarioSistema
+                        .Where(u => u.NumeroDocumento == requestCiudadano.numero_documento)
+                        .ToList();
 
 
+                ResponseListaPaginada responseListaPaginada = new ResponseListaPaginada();
+                responseListaPaginada.TotalRegistros = salida.Count;
+                responseListaPaginada.DatosPaginados = salida;
+
+
+
+                return responseListaPaginada;
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
