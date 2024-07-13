@@ -11,8 +11,6 @@ using System.Net;
 using sicf_Models.Dto.Solicitudes;
 using sicf_Models.Utility;
 using sicfExceptions.Exceptions;
-using FluentValidation;
-using sicf_BusinessHandlers.BusinessHandlers.Solicitudes;
 
 namespace sicfServicesApi.Controllers
 {
@@ -24,14 +22,11 @@ namespace sicfServicesApi.Controllers
     {
 
         private IUsuarioHandler usuarioHandler;
-        private readonly ISolicitudesHandler _solicitudesHandler;
-        private readonly IValidator<RequestDatosInvolucrado> _validator;
+      
 
-        public UsuarioController(IUsuarioHandler usuarioHandler, ISolicitudesHandler solicitudesHander, IValidator<RequestDatosInvolucrado> validator)
+        public UsuarioController(IUsuarioHandler usuarioHandler)
         {
             this.usuarioHandler = usuarioHandler;
-            _solicitudesHandler = solicitudesHander;
-            _validator = validator;
         }
 
 
@@ -134,17 +129,17 @@ namespace sicfServicesApi.Controllers
         [HttpPost]
         [Route("consultarUsuario")]
         //[Authorize]
-        public IActionResult ConsultarUsuario(RequestCiudadano requestCiudadano)
+        public IActionResult ConsultarUsuario(RequestCiudadano requestUsuario)
         {
             try
             {
                 ResponseListaPaginada response = new ResponseListaPaginada();
-                response = usuarioHandler.ValidarUsuario(requestCiudadano);
+                response = usuarioHandler.ValidarUsuario(requestUsuario);
 
                 if (response.TotalRegistros > 0)
                     return CustomResult(Message.ErrorRequest, response, HttpStatusCode.BadRequest);
 
-                response = usuarioHandler.GetUsuario(requestCiudadano);
+                response = usuarioHandler.GetUsuario(requestUsuario);
 
                 return CustomResult(Message.Ok, response, HttpStatusCode.OK);
 
