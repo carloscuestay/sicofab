@@ -83,7 +83,7 @@ namespace sicf_DataBase.Repositories.Comisaria
 
                 sicofaUsuarioSistemaPerfil.IdPerfil = context.SicofaPerfil.Where(p => p.Codigo == perfil).Select(s => s.IdPerfil).Single();
                 sicofaUsuarioSistemaPerfil.IdUsuarioSistema = idUsuario;
-                sicofaUsuarioSistemaPerfil.IdComisaria = idComisaria;
+                //sicofaUsuarioSistemaPerfil.IdComisaria = idComisaria;
                 sicofaUsuarioSistemaPerfil.Estado = PerfilesConstantes.EstadoActivo;
 
                 context.SicofaUsuarioSistemaPerfil.Add(sicofaUsuarioSistemaPerfil);
@@ -93,7 +93,13 @@ namespace sicf_DataBase.Repositories.Comisaria
                 return true;
             }
             catch (Exception ex) {
-                throw new Exception(ex.Message);
+                // Registrar la excepción y su excepción interna
+                Console.WriteLine($"Error: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                }
+                throw; // Vuelve a lanzar la excepción si es necesario
             }
         }
 

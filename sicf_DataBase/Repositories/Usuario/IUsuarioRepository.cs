@@ -1,5 +1,7 @@
-﻿using sicf_Models.Dto.Token;
+﻿using sicf_Models.Dto.Solicitudes;
+using sicf_Models.Dto.Token;
 using sicf_Models.Dto.Usuario;
+using sicf_Models.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,5 +64,7 @@ namespace sicf_DataBase.Repositories.Usuario
         public  Task<UsuarioDTO> ConsultarUsuarioPorCorreo(string email);
 
         public Task<List<ComisariaPerfilDTO>> PerfilesUsuarioComisaria(int idUsuario);
+
+        public ResponseListaPaginada ObtenerUsuario(RequestCiudadano requestCiudadano);
     }
 }

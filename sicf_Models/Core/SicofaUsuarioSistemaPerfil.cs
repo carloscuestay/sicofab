@@ -9,10 +9,10 @@ namespace sicf_Models.Core
         public int IdUsuarioSistema { get; set; }
         public int IdPerfil { get; set; }
         public bool? Estado { get; set; }
-        public long? IdComisaria { get; set; }
+        //public long? IdComisaria { get; set; }
 
         public virtual SicofaPerfil IdPerfilNavigation { get; set; } = null!;
         public virtual SicofaUsuarioSistema IdUsuarioSistemaNavigation { get; set; } = null!;
-        public virtual SicofaComisaria? IdComisariaNavigation { get; set; }
+        //public virtual SicofaComisaria? IdComisariaNavigation { get; set; }
     }
 }
