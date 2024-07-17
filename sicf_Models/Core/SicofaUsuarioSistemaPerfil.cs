@@ -8,7 +8,7 @@ namespace sicf_Models.Core
        
         public int IdUsuarioSistema { get; set; }
         public int IdPerfil { get; set; }
-        public bool? Estado { get; set; }
+        public bool? Estado { get; set; } = true;
         //public long? IdComisaria { get; set; }
 
         public virtual SicofaPerfil IdPerfilNavigation { get; set; } = null!;

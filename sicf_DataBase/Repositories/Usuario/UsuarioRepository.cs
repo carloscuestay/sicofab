@@ -478,6 +478,8 @@ namespace sicf_DataBase.Repositories.Usuario
                 }
 
                 await _context.SicofaUsuarioSistemaPerfil.AddRangeAsync(asignacion);
+                await _context.SaveChangesAsync();
+
             }
             catch (Exception ex)
             {
