@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\sicf_Models\sicf_Models.csproj" />
+    <ProjectReference Include="..\sicf_Security\sicf_Security.csproj" />
   </ItemGroup>
 
 </Project>

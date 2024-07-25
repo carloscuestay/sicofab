@@ -76,6 +76,7 @@ using System.Reflection;
 using sicf_BusinessHandlers.BusinessHandlers.ReporteSolicitud;
 using sicf_DataBase.Repositories.ReporteSolicitud;
 using sicf_BusinessHandlers.BusinessHandlers.PruebasPARD;
+using sicf_BusinessHandlers.BusinessHandlers.AzureBlogStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -266,9 +267,32 @@ builder.Services.AddAuthentication(options =>
 
 
 //Register BlobServiceClient
-builder.Services.AddScoped(_ => {
-    return new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage"));
+
+    builder.Services.AddScoped(_ =>
+    {
+        return new BlobServiceClient(builder.Configuration.GetConnectionString("AzureBlobStorage"));
+        //Mirar mas detallado el servicio del blogStorage, como es el comportamiento.
+    });
+
+builder.Services.AddScoped<IFileManagerLogic>(provider =>
+{
+    var useAzure = bool.Parse(provider.GetRequiredService<IConfiguration>()["UseAzureBlobStorage"] ?? "false");
+
+    if (useAzure)
+    {
+        var blobServiceClient = provider.GetService<BlobServiceClient>();
+        if (blobServiceClient == null)
+        {
+            throw new InvalidOperationException("BlobServiceClientno no registrado.");
+        }
+        return new AzureBlobStorageService(blobServiceClient, provider.GetRequiredService<IConfiguration>());
+    }
+
+    var localPath = provider.GetRequiredService<IConfiguration>()["ConnectionStrings:LocalStoragePath"];
+    return new LocalStorageService(localPath);
 });
+
+
 
 
 builder.Services.AddScoped<IRemisionRepository, RemisionRepository>();
