@@ -1,4 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MailKit.Security;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using MimeKit;
+using MimeKit.Text;
+using MailKit.Net.Smtp;
 using sicf_DataBase.Data;
 using sicf_Models.Constants;
 using sicf_Models.Core;
@@ -10,20 +15,24 @@ using sicfExceptions.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using static sicf_Models.Constants.Constants;
+
 
 namespace sicf_DataBase.Repositories.Comisaria
 {
     public class ComisariaRepository : IComisariaRepository
     {
         private readonly SICOFAContext context;
+        private readonly IConfiguration Configuration;
 
-        public ComisariaRepository(SICOFAContext context)
+        public ComisariaRepository(SICOFAContext context, IConfiguration configuration)
         {
             this.context = context;
+            this.Configuration = configuration;
         }
 
         public long IniciarComisaria(CreacionComisariaDTO data)
@@ -54,19 +63,68 @@ namespace sicf_DataBase.Repositories.Comisaria
                 usuario.IdTipoDocumento = data.IdDocumento;
                 usuario.TelefonoFijo = data.telefonoFijo == String.Empty ? 0 : (long)Convert.ToDouble(data.celular);
                 usuario.Cargo = "data";
-                usuario.EncriptPassw = CreateMD5(data.nombres + data.apellido + data.numeroDocumento);
+                var pass = data.nombres + data.apellido + data.numeroDocumento;
+                usuario.EncriptPassw = CreateMD5(pass);
                 usuario.CorreoElectronico = data.correoElectronico;
                 usuario.NumeroDocumento = data.numeroDocumento;
                 usuario.Activo = true;
+                usuario.cambioPass = true;
                 context.SicofaUsuarioSistema.Add(usuario);
 
                 context.SaveChanges();
+                EntregarContrasena(usuario.CorreoElectronico, pass);
+
 
                 return usuario.IdUsuarioSistema;
             }
             catch (Exception ex) {
                 throw new Exception(ex.Message);
             }
+        }
+        private async Task EntregarContrasena(string correo, string passs)
+        {
+            var email = new MimeMessage();
+            try
+            {
+                email.From.Add(MailboxAddress.Parse(Configuration.GetSection("Email:UserName").Value));
+                email.To.Add(MailboxAddress.Parse(correo));
+                email.Subject = "Nueva contraseña Sicofa";
+                email.Body = new TextPart(TextFormat.Html) {Text = @"
+                    <html>
+                        <body style='font-family: Arial, sans-serif; color: #333;'>
+                            <h2 style='color: #0066cc;'>Nueva contraseña Sicofa</h2>
+                            <p>Estimado usuario,</p>
+                            <p>Tu nueva contraseña para acceder a Sicofa es: <strong>" + passs + @"</strong></p>
+                            <p>Por razones de seguridad, te recomendamos cambiar esta contraseña después de tu próximo inicio de sesión.</p>
+                            <p>Si no has solicitado este cambio, por favor contacta con nuestro equipo de soporte inmediatamente.</p>
+                            <p>Saludos cordiales,<br>El equipo de Sicofa</p>
+                        </body>
+                    </html>" 
+                };
+
+                var smtp = new MailKit.Net.Smtp.SmtpClient();
+
+                var host = Configuration.GetSection("Email:Host").Value;
+                var port = Convert.ToInt32(Configuration.GetSection("Email:Port").Value);
+                var user = Configuration.GetSection("Email:UserName").Value;
+                var pass = Configuration.GetSection("Email:PassWord").Value;
+
+                smtp.Connect(host, port, SecureSocketOptions.StartTls);
+
+                smtp.Authenticate(user, pass);
+                smtp.Send(email);
+                smtp.Disconnect(true);
+
+
+
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+
+
         }
 
         private bool AsignacionComisaria(int idComisaria, int idUsuario, string perfil)
@@ -192,23 +250,18 @@ namespace sicf_DataBase.Repositories.Comisaria
 
             return responseComisaria;
         }
-
         public long? ValidarCodigoComisaria(string codigoComisaria)
         {
             return context.SicofaComisaria.Where(c => c.CodigoComisaria == codigoComisaria).Select(c => c.IdComisaria).FirstOrDefault();
         }
-
-
         public long? ValidarnombreComisaria(string nombreComisaria)
         {
             return context.SicofaComisaria.Where(c => c.Nombre.Replace(" ", "") == nombreComisaria.Replace(" ", "")).Select(c => c.IdComisaria).FirstOrDefault();
         }
-
         public long? ValidarCorreoComisario(string correoElectronico)
         {
             return context.SicofaUsuarioSistema.Where(c => c.CorreoElectronico == correoElectronico).Select(c => c.IdUsuarioSistema).FirstOrDefault();
         }
-
         public long? ValidarIdentificacionComisario(string numeroDocumento)
         {
             return context.SicofaUsuarioSistema.Where(c => c.NumeroDocumento == numeroDocumento).Select(c => c.IdUsuarioSistema).FirstOrDefault();
@@ -232,7 +285,6 @@ namespace sicf_DataBase.Repositories.Comisaria
                         celular = usuario.Celular.ToString()
                     }).FirstOrDefault();                                  
         }
-
         public List<UsuarioComisariaDTO>? ConsutalUsuarioComisaria(long idComisaria)
         {
             return (from usuario in context.SicofaUsuarioSistema
@@ -253,7 +305,6 @@ namespace sicf_DataBase.Repositories.Comisaria
                         codigotipoDocumento = dominio.Codigo
                     }).ToList();
         }
-
         public List<ComisariaUsuario> ConsultaComisariasUsuario(int idUsuario)
         {
             return (from usuarioComisaria in context.SicofaUsuarioComisaria
@@ -265,7 +316,6 @@ namespace sicf_DataBase.Repositories.Comisaria
                         nombreComisaria = comisaria.Nombre
                     }).ToList();        
         }
-
         public Task<ControledResponseDTO> CrearMinisterio(CreacionComisariaDTO ministerio)
         {
             try
@@ -387,8 +437,6 @@ namespace sicf_DataBase.Repositories.Comisaria
             }
         }
 
-
-
         public Tuple<string, string> ObtenerNombreComisariayComisario(long id)
         {
             try {
@@ -460,7 +508,6 @@ namespace sicf_DataBase.Repositories.Comisaria
                 return Convert.ToHexString(hashBytes);
             }
         }
-
         #endregion metodosPrivados
     }
 }
